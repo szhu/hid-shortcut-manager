@@ -23,9 +23,9 @@ func onKeyEvent(
   if [.keyDown , .keyUp].contains(type) {
     let flags = event.flags
 
-    var msg = ""
-    msg += type == .keyDown ? "->" : "<-"
-    msg += " "
+    // var msg = ""
+    // msg += type == .keyDown ? "->" : "<-"
+    // msg += " "
 
     var eventString = ""
     eventString += flags.contains(.maskAlphaShift)  ? "c" : ""
@@ -35,6 +35,8 @@ func onKeyEvent(
     eventString += flags.contains(.maskCommand)     ? "@" : ""
     eventString += flags.contains(.maskSecondaryFn) ? "f" : ""
     eventString += flags.contains(.maskNumericPad)  ? "n" : ""
+
+    // eventString += getFootPedalReading()  ? "p" : ""
 
     let eventCopy = event.copy()!
     eventCopy.flags = CGEventFlags()
@@ -51,12 +53,13 @@ func onKeyEvent(
       eventString += chars.uppercased()
     }
 
-    msg += eventString
+    // msg += eventString
 
     let isMatching = patterns.contains(eventString)
 
     if (debugMode || isMatching && type == .keyUp) {
-      print(msg)
+      print(eventString)
+      fflush(stdout)
     }
     if (isMatching) {
       return nil
@@ -100,7 +103,7 @@ let eventMask =
 // let eventMask = 1 << CGEventType.keyUp.rawValue
 guard let eventTap = CGEvent.tapCreate(
   tap: .cgSessionEventTap,
-  place: .headInsertEventTap,
+  place: .tailAppendEventTap,
   options: .defaultTap,
   eventsOfInterest: CGEventMask(eventMask),
   callback: onKeyEvent,
@@ -115,4 +118,5 @@ let runLoopSource =
 CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
 CGEvent.tapEnable(tap: eventTap, enable: true)
 print("Ready!")
+fflush(stdout)
 CFRunLoopRun()
