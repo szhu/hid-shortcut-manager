@@ -2,38 +2,40 @@ import { readLines } from "https://deno.land/std@0.77.0/io/bufio.ts";
 
 interface AppAction {
   type: "app";
-  action: "open" | "quit" | "hide";
+  command: string | [string, string, string];
   app: ["id", string] | ["dockIndex", number];
 }
 
 type Action = AppAction;
 
-const SHORTCUTS: { [key: string]: Action | undefined } = {
-  // "^@W": { type: "app", action: "open", app: ["id", "com.google.Chrome"] },
-  // "^@E": { type: "app", id: "com.microsoft.VSCode" },
-  "~n0": { type: "app", action: "hide", app: ["dockIndex", 0] },
-  "n0": { type: "app", action: "open", app: ["dockIndex", 0] },
-  "n1": { type: "app", action: "open", app: ["dockIndex", 1] },
-  "n2": { type: "app", action: "open", app: ["dockIndex", 2] },
-  "n3": { type: "app", action: "open", app: ["dockIndex", 3] },
-  "n4": { type: "app", action: "open", app: ["dockIndex", 4] },
-  "n5": { type: "app", action: "open", app: ["dockIndex", 5] },
-  "n6": { type: "app", action: "open", app: ["dockIndex", 6] },
-  "n7": { type: "app", action: "open", app: ["dockIndex", 7] },
-  "n8": { type: "app", action: "open", app: ["dockIndex", 8] },
-  "n9": { type: "app", action: "open", app: ["dockIndex", 9] },
-  "@n0": { type: "app", action: "quit", app: ["dockIndex", 0] },
-  "@n1": { type: "app", action: "quit", app: ["dockIndex", 1] },
-  "@n2": { type: "app", action: "quit", app: ["dockIndex", 2] },
-  "@n3": { type: "app", action: "quit", app: ["dockIndex", 3] },
-  "@n4": { type: "app", action: "quit", app: ["dockIndex", 4] },
-  "@n5": { type: "app", action: "quit", app: ["dockIndex", 5] },
-  "@n6": { type: "app", action: "quit", app: ["dockIndex", 6] },
-  "@n7": { type: "app", action: "quit", app: ["dockIndex", 7] },
-  "@n8": { type: "app", action: "quit", app: ["dockIndex", 8] },
-  "@n9": { type: "app", action: "quit", app: ["dockIndex", 9] },
+let cycle: [string, string, string] = ["reopen", "reopen", "hide"]
 
-  "p1": { type: "app", action: "open", app: ["dockIndex", 0] },
+const SHORTCUTS: { [key: string]: Action | undefined } = {
+  "^@W": { type: "app", command: cycle, app: ["id", "com.google.Chrome"] },
+  // "^@E": { type: "app", id: "com.microsoft.VSCode" },
+  "~n0": { type: "app", command: "hide", app: ["dockIndex", 0] },
+  "n0": { type: "app", command: cycle, app: ["dockIndex", 0] },
+  "n1": { type: "app", command: cycle, app: ["dockIndex", 1] },
+  "n2": { type: "app", command: cycle, app: ["dockIndex", 2] },
+  "n3": { type: "app", command: cycle, app: ["dockIndex", 3] },
+  "n4": { type: "app", command: cycle, app: ["dockIndex", 4] },
+  "n5": { type: "app", command: cycle, app: ["dockIndex", 5] },
+  "n6": { type: "app", command: cycle, app: ["dockIndex", 6] },
+  "n7": { type: "app", command: cycle, app: ["dockIndex", 7] },
+  "n8": { type: "app", command: cycle, app: ["dockIndex", 8] },
+  "n9": { type: "app", command: cycle, app: ["dockIndex", 9] },
+  "@n0": { type: "app", command: "quit", app: ["dockIndex", 0] },
+  "@n1": { type: "app", command: "quit", app: ["dockIndex", 1] },
+  "@n2": { type: "app", command: "quit", app: ["dockIndex", 2] },
+  "@n3": { type: "app", command: "quit", app: ["dockIndex", 3] },
+  "@n4": { type: "app", command: "quit", app: ["dockIndex", 4] },
+  "@n5": { type: "app", command: "quit", app: ["dockIndex", 5] },
+  "@n6": { type: "app", command: "quit", app: ["dockIndex", 6] },
+  "@n7": { type: "app", command: "quit", app: ["dockIndex", 7] },
+  "@n8": { type: "app", command: "quit", app: ["dockIndex", 8] },
+  "@n9": { type: "app", command: "quit", app: ["dockIndex", 9] },
+
+  // "p1": { type: "app", action: "open", app: ["dockIndex", 0] },
 };
 
 let keys = Object.keys(SHORTCUTS);
@@ -58,8 +60,8 @@ async function quitAppId(id: string) {
   await osascript(`quit app id "${id}"`);
 }
 
-async function hideAppId(id: string) {
-  let process = Deno.run({ cmd: ["swift", "runningApps.swift", id, "hide"] });
+async function manipulateApp(id: string, x: string, y: string, z: string) {
+  let process = Deno.run({ cmd: ["./runningApps", id, x, y, z] });
   await process.status();
 }
 
@@ -99,17 +101,13 @@ for await (let key of readLines(keyListenerProcess.stdout)) {
           break;
       }
 
-      switch (action.action) {
-        case "open":
-          openAppId(id);
-          break;
-        case "quit":
-          quitAppId(id);
-          break;
-        case "hide":
-          hideAppId(id);
-          break;
+      let command: [string, string, string]
+      if (typeof action.command === "string") {
+        command = [action.command, action.command, action.command]
+      } else {
+        command = action.command
       }
+      manipulateApp(id, ...command)
       break;
     }
   }

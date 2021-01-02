@@ -23,10 +23,6 @@ func onKeyEvent(
   if [.keyDown , .keyUp].contains(type) {
     let flags = event.flags
 
-    // var msg = ""
-    // msg += type == .keyDown ? "->" : "<-"
-    // msg += " "
-
     var eventString = ""
     eventString += flags.contains(.maskAlphaShift)  ? "c" : ""
     eventString += flags.contains(.maskShift)       ? "$" : ""
@@ -36,24 +32,12 @@ func onKeyEvent(
     eventString += flags.contains(.maskSecondaryFn) ? "f" : ""
     eventString += flags.contains(.maskNumericPad)  ? "n" : ""
 
-    // eventString += getFootPedalReading()  ? "p" : ""
-
     let eventCopy = event.copy()!
     eventCopy.flags = CGEventFlags()
-    // var char = UniChar()
-    // var length = 0
-    // eventCopy.keyboardGetUnicodeString(
-    //   maxStringLength: 1,
-    //   actualStringLength: &length,
-    //   unicodeString: &char
-    // )
-    // msg += "'" + String(UnicodeScalar(char)!).uppercased() + "'"
 
     if let nsEvent = NSEvent(cgEvent: eventCopy), let chars = nsEvent.charactersIgnoringModifiers {
       eventString += chars.uppercased()
     }
-
-    // msg += eventString
 
     let isMatching = patterns.contains(eventString)
 
@@ -64,37 +48,8 @@ func onKeyEvent(
     if (isMatching) {
       return nil
     }
-
-    // var keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-
-    // var char = UniChar()
-    // var length = 0
-
-    // let eventCopy = event.copy()!
-    // eventCopy.flags = 0
-    // eventCopy.keyboardGetUnicodeString(
-    //   maxStringLength: 1,
-    //   actualStringLength: &length,
-    //   unicodeString: &char
-    // )
-
-
-
-
-    // let typeString = type == .keyDown ? "->" : "<-"
-    // let flagsString = String(event.flags.rawValue, radix: 2)
-    //   .padding(toLength: 32, withPad: "0", startingAt: 0)
-
-
-    // print("\(typeString) \(flagsString) '\(UnicodeScalar(char)!)'")
-
-    // if keyCode == kVK_ANSI_X {
-    //     keyCode = Int64(kVK_ANSI_Z)
-    // } else if keyCode == kVK_ANSI_Z {
-    //     return nil
-    // }
-    // event.setIntegerValueField(.keyboardEventKeycode, value: keyCode)
   }
+
   return Unmanaged.passRetained(event)
 }
 
