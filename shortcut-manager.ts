@@ -1,49 +1,199 @@
 import { readLines } from "https://deno.land/std@0.77.0/io/bufio.ts";
 
+type SingleAppCommand = "noop" | "reopen" | "launch" | "hide" | "show" | "quit";
+
+type ConditionalAppCommand = SingleAppCommand | [
+  SingleAppCommand,
+  SingleAppCommand,
+  SingleAppCommand,
+];
+
 interface AppAction {
   type: "app";
-  command: string | [string, string, string];
+  command: ConditionalAppCommand;
   app: ["id", string] | ["dockIndex", number];
 }
 
-type Action = AppAction;
+interface JsAction {
+  type: "js";
+  command: () => void;
+}
 
-let cycle: [string, string, string] = ["reopen", "reopen", "hide"]
+interface ApplescriptAction {
+  type: "as";
+  command: string;
+}
+
+type SpotifyCommand = ["playTrack", string, boolean] | ["playPause"];
+
+interface SpotifyAction {
+  type: "spotify";
+  command: SpotifyCommand;
+}
+
+type Action = AppAction | JsAction | ApplescriptAction | SpotifyAction;
+
+let cycle1: ConditionalAppCommand = ["reopen", "reopen", "hide"];
+let cycle2: ConditionalAppCommand = ["noop", "reopen", "hide"];
+
+function app(command: ConditionalAppCommand, id: string): Action {
+  return { type: "app", command, app: ["id", id] };
+}
+
+function play(spotifyUri: string, shuffle: boolean = true): SpotifyAction {
+  return {
+    type: "spotify",
+    command: ["playTrack", spotifyUri, shuffle],
+  };
+}
 
 const SHORTCUTS: { [key: string]: Action | undefined } = {
-  "^@W": { type: "app", command: cycle, app: ["id", "com.google.Chrome"] },
-  // "^@E": { type: "app", id: "com.microsoft.VSCode" },
-  "~n0": { type: "app", command: "hide", app: ["dockIndex", 0] },
-  "n0": { type: "app", command: cycle, app: ["dockIndex", 0] },
-  "n1": { type: "app", command: cycle, app: ["dockIndex", 1] },
-  "n2": { type: "app", command: cycle, app: ["dockIndex", 2] },
-  "n3": { type: "app", command: cycle, app: ["dockIndex", 3] },
-  "n4": { type: "app", command: cycle, app: ["dockIndex", 4] },
-  "n5": { type: "app", command: cycle, app: ["dockIndex", 5] },
-  "n6": { type: "app", command: cycle, app: ["dockIndex", 6] },
-  "n7": { type: "app", command: cycle, app: ["dockIndex", 7] },
-  "n8": { type: "app", command: cycle, app: ["dockIndex", 8] },
-  "n9": { type: "app", command: cycle, app: ["dockIndex", 9] },
-  "@n0": { type: "app", command: "quit", app: ["dockIndex", 0] },
-  "@n1": { type: "app", command: "quit", app: ["dockIndex", 1] },
-  "@n2": { type: "app", command: "quit", app: ["dockIndex", 2] },
-  "@n3": { type: "app", command: "quit", app: ["dockIndex", 3] },
-  "@n4": { type: "app", command: "quit", app: ["dockIndex", 4] },
-  "@n5": { type: "app", command: "quit", app: ["dockIndex", 5] },
-  "@n6": { type: "app", command: "quit", app: ["dockIndex", 6] },
-  "@n7": { type: "app", command: "quit", app: ["dockIndex", 7] },
-  "@n8": { type: "app", command: "quit", app: ["dockIndex", 8] },
-  "@n9": { type: "app", command: "quit", app: ["dockIndex", 9] },
+  // System
+  "^@,": app(cycle1, "com.apple.systempreferences"),
+  "^@S": app(cycle1, "com.apple.finder"),
+  "$^@S": app(["noop", "quit", "quit"], "com.apple.finder"),
+  "^@b": app(cycle1, "com.apple.ActivityMonitor"),
+  "^~b": app(cycle1, "com.apple.Terminal"),
+  "~/": app("reopen", "com.apple.ScreenSaver.Engine"),
 
+  // Utility
+  // "^@.": app(cycle1, "de.codenuts.HotKey"),
+  "^@0": app(cycle1, "tandem.app"),
+
+  // Development
+  "^@E": app(cycle2, "com.microsoft.VSCode"),
+
+  // Life
+  "$^@T": app(cycle1, "com.spotify.client"),
+  "^~@C": app(cycle1, "com.apple.iCal"),
+  "^@Y": app(cycle1, "com.automattic.SimplenoteMac"),
+
+  // Web
+  "$^@M": app(cycle1, "com.facebook.archon"),
+  "^@A": app(cycle1, "com.google.Chrome.app.dpbfphgmphbjphnhpceopljnkmkbpfhi"),
+  "^@K": app(cycle1, "com.hnc.Discord"),
+  "^@W": app(cycle1, "com.google.Chrome"),
+
+  // Spotify
+  "n.": app(["launch", "hide", "hide"], "com.spotify.client"),
+  "n*": {
+    type: "as",
+    command: `tell application "Spotify" to set sound volume to 0`,
+  },
+  "n+": {
+    type: "as",
+    command:
+      `tell application "Spotify" to set sound volume to (sound volume + 1) * 1.2 + 1`,
+  },
+  "n-": {
+    type: "as",
+    command:
+      `tell application "Spotify" to set sound volume to (sound volume) * 0.8333`,
+  },
+  //
+  "ne": app(["reopen", "reopen", "hide"], "com.spotify.client"),
+  //
+  "n0": { type: "spotify", command: ["playPause"] },
+  // Coffee Shop Vibes
+  "n1": play("spotify:station:playlist:2s9R059mmdc8kz6lrUqZZd"),
+  // Chill Hits
+  "n2": play("spotify:station:playlist:37i9dQZF1DX4WYpdgoIcn6"),
+  // Creamy
+  "n3": play("spotify:station:playlist:37i9dQZF1DXdgz8ZB7c2CP"),
+  // NIKI - lowkey
+  "n4": play("spotify:station:track:5TTXEcfsYLh6fTarLaevTi"),
+  // XCRPT
+  "n5": play("spotify:station:artist:2cGJym7cmkjHnXbQuZosPk"),
+  //
+  "n6": undefined,
+  // 1 Hour
+  "n7": {
+    type: "js",
+    command: () => {
+      spotifyPlayTrack("spotify:playlist:3wOYpqLSqMHweMcinQuzQQ", false);
+      osascript(`
+        tell application "Menubar Countdown"
+          set hours to 0
+          set minutes to 56
+          set seconds to 0
+          start timer
+        end tell
+      `);
+    },
+  },
+  // BBC Minute
+  "n8": play("spotify:show:4BIebsx0fW1Z6aptl05HBj"),
+  // Daily Drive
+  "n9": play("spotify:playlist:37i9dQZF1EfQP9X79Savvn"),
+  //
+  // "~n0": { type: "app", command: "hide", app: ["dockIndex", 0] },
+  // "n0": { type: "app", command: cycle, app: ["dockIndex", 0] },
+  // "n1": { type: "app", command: cycle, app: ["dockIndex", 1] },
+  // "n2": { type: "app", command: cycle, app: ["dockIndex", 2] },
+  // "n3": { type: "app", command: cycle, app: ["dockIndex", 3] },
+  // "n4": { type: "app", command: cycle, app: ["dockIndex", 4] },
+  // "n5": { type: "app", command: cycle, app: ["dockIndex", 5] },
+  // "n6": { type: "app", command: cycle, app: ["dockIndex", 6] },
+  // "n7": { type: "app", command: cycle, app: ["dockIndex", 7] },
+  // "n8": { type: "app", command: cycle, app: ["dockIndex", 8] },
+  // "n9": { type: "app", command: cycle, app: ["dockIndex", 9] },
+  // "@n0": { type: "app", command: "quit", app: ["dockIndex", 0] },
+  // "@n1": { type: "app", command: "quit", app: ["dockIndex", 1] },
+  // "@n2": { type: "app", command: "quit", app: ["dockIndex", 2] },
+  // "@n3": { type: "app", command: "quit", app: ["dockIndex", 3] },
+  // "@n4": { type: "app", command: "quit", app: ["dockIndex", 4] },
+  // "@n5": { type: "app", command: "quit", app: ["dockIndex", 5] },
+  // "@n6": { type: "app", command: "quit", app: ["dockIndex", 6] },
+  // "@n7": { type: "app", command: "quit", app: ["dockIndex", 7] },
+  // "@n8": { type: "app", command: "quit", app: ["dockIndex", 8] },
+  // "@n9": { type: "app", command: "quit", app: ["dockIndex", 9] },
   // "p1": { type: "app", action: "open", app: ["dockIndex", 0] },
 };
 
+for (let oldKey in SHORTCUTS) {
+  let key = oldKey;
+  key = key.replace("b", "\x7F"); // "backspace"
+  key = key.replace("w", "\uF700"); // "up"
+  key = key.replace("s", "\uF701"); // "down"
+  key = key.replace("a", "\uF702"); // "left"
+  key = key.replace("d", "\uF703"); // "right"
+  key = key.replace("r", "\r"); // "return"
+  key = key.replace("e", "\x03"); // "enter"
+  key = key.replace("f01", "f\uF704"); // function key
+  key = key.replace("f02", "f\uF705"); // function key
+  key = key.replace("f03", "f\uF706"); // function key
+  key = key.replace("f04", "f\uF707"); // function key
+  key = key.replace("f05", "f\uF708"); // function key
+  key = key.replace("f06", "f\uF709"); // function key
+  key = key.replace("f07", "f\uF70A"); // function key
+  key = key.replace("f08", "f\uF70B"); // function key
+  key = key.replace("f09", "f\uF70C"); // function key
+  key = key.replace("f10", "f\uF70D"); // function key
+  key = key.replace("f11", "f\uF70E"); // function key
+  key = key.replace("f12", "f\uF70F"); // function key
+  key = key.replace("f13", "f\uF710"); // function key
+  key = key.replace("f14", "f\uF711"); // function key
+  key = key.replace("f15", "f\uF712"); // function key
+  key = key.replace("f16", "f\uF713"); // function key
+  key = key.replace("f17", "f\uF714"); // function key
+  key = key.replace("f18", "f\uF715"); // function key
+  key = key.replace("f19", "f\uF716"); // function key
+  if (key !== oldKey) {
+    SHORTCUTS[key] = SHORTCUTS[oldKey];
+    delete SHORTCUTS[oldKey];
+  }
+}
+
 let keys = Object.keys(SHORTCUTS);
 
-console.log(["swift", "global-key-listener.swift", keys.join("\n")])
-let keyListenerProcess = Deno.run({
-  cmd: ["swift", "global-key-listener.swift", keys.join("\n")],
+let keysProcess = Deno.run({
+  cmd: ["swift", "lib-swift/input-keys.swift", keys.join("\n")],
   stdout: "piped",
+});
+
+let appsProcess = Deno.run({
+  cmd: ["swift", "lib-swift/output-apps.swift", keys.join("\n")],
+  stdin: "piped",
 });
 
 async function osascript(cmd: string) {
@@ -60,9 +210,29 @@ async function quitAppId(id: string) {
   await osascript(`quit app id "${id}"`);
 }
 
+async function spotifyPlayPause() {
+  await osascript(
+    `if running of application "Spotify" then tell application "Spotify" to playpause`,
+  );
+}
+
+async function spotifyPlayTrack(track: string, shuffle: boolean) {
+  osascript(`
+    tell application "Spotify"
+      pause
+      delay 1
+      if shuffling enabled then set shuffling to ${shuffle}
+      play track "${track}"
+    end tell
+  `);
+}
+
 async function manipulateApp(id: string, x: string, y: string, z: string) {
-  let process = Deno.run({ cmd: ["./runningApps", id, x, y, z] });
-  await process.status();
+  const encoder = new TextEncoder();
+  appsProcess.stdin.write(encoder.encode(id + "\n"));
+  appsProcess.stdin.write(encoder.encode(x + "\n"));
+  appsProcess.stdin.write(encoder.encode(y + "\n"));
+  appsProcess.stdin.write(encoder.encode(z + "\n"));
 }
 
 async function getDockAppIds() {
@@ -83,7 +253,7 @@ async function getDockAppIds() {
 
 let DOCK_APP_IDS = await getDockAppIds();
 
-for await (let key of readLines(keyListenerProcess.stdout)) {
+for await (let key of readLines(keysProcess.stdout)) {
   let action = SHORTCUTS[key];
   console.log(key, action);
 
@@ -101,15 +271,35 @@ for await (let key of readLines(keyListenerProcess.stdout)) {
           break;
       }
 
-      let command: [string, string, string]
+      let command: [string, string, string];
       if (typeof action.command === "string") {
-        command = [action.command, action.command, action.command]
+        command = [action.command, action.command, action.command];
       } else {
-        command = action.command
+        command = action.command;
       }
-      manipulateApp(id, ...command)
+      manipulateApp(id, ...command);
       break;
+    }
+    case "js": {
+      action.command();
+      break;
+    }
+    case "as": {
+      osascript(action.command);
+      break;
+    }
+    case "spotify": {
+      switch (action.command[0]) {
+        case "playPause":
+          spotifyPlayPause();
+          break;
+
+        case "playTrack": {
+          let [_, track, shuffle] = action.command;
+          spotifyPlayTrack(track, shuffle);
+        }
+      }
     }
   }
 }
-await keyListenerProcess.status();
+await keysProcess.status();

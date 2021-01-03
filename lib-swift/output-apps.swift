@@ -1,10 +1,16 @@
 import AppKit
 
-if CommandLine.argc > 4 {
-  let id = CommandLine.arguments[1]
-  let notRunningAction = CommandLine.arguments[2]
-  let hiddenAction = CommandLine.arguments[3]
-  let visibleAction = CommandLine.arguments[4]
+func readLineWithPrompt(_: String) -> String {
+  // print(prompt, terminator: " ")
+  guard let answer = readLine(strippingNewline: true) else { exit(0) }
+  return answer
+}
+
+while true {
+  let id = readLineWithPrompt("id:")
+  let notRunningAction = readLineWithPrompt("notRunningAction:")
+  let hiddenAction = readLineWithPrompt("hiddenAction:")
+  let visibleAction = readLineWithPrompt("visibleAction:")
 
   let apps = NSRunningApplication
     .runningApplications(withBundleIdentifier: id)
@@ -16,6 +22,8 @@ if CommandLine.argc > 4 {
   } else {
     action = hiddenAction
   }
+
+  print("id: \(id)  action: \(action)")
 
   switch action {
   case "launch":
