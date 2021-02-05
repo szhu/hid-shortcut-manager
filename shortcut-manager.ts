@@ -62,17 +62,19 @@ const SHORTCUTS: { [key: string]: Action | undefined } = {
 
   // Development
   "^@E": app(cycle2, "com.microsoft.VSCode"),
+  "$^@E": app(cycle2, "arduino.ProIDE"),
 
   // Life
   "$^@T": app(cycle1, "com.spotify.client"),
-  "^~@C": app(cycle1, "com.apple.iCal"),
+  "^@C": app(cycle1, "com.apple.iCal"),
   "^@Y": app(cycle1, "com.automattic.SimplenoteMac"),
 
   // Web
   "$^@M": app(cycle1, "com.facebook.archon"),
   "^@A": app(cycle1, "com.google.Chrome.app.dpbfphgmphbjphnhpceopljnkmkbpfhi"),
-  "^@K": app(cycle1, "com.hnc.Discord"),
+  "^@K": app(cycle1, "com.google.Chrome.app.magkoliahgffibhgfkmoealggombgknl"),
   "^@W": app(cycle1, "com.google.Chrome"),
+  "^@Z": app(cycle2, "us.zoom.xos"),
 
   // Spotify
   "n.": app(["launch", "hide", "hide"], "com.spotify.client"),
