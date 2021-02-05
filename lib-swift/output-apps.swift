@@ -42,8 +42,8 @@ while true {
 
   case "reopen":
     let task = Process()
-    task.launchPath = "/usr/bin/open"
-    task.arguments = ["-b", id]
+    task.launchPath = "/usr/bin/env"
+    task.arguments = ["-i", "/usr/bin/open", "-b", id]
     task.launch()
     task.waitUntilExit()
 
