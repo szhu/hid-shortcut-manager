@@ -35,6 +35,10 @@ type Action = AppAction | JsAction | ApplescriptAction | SpotifyAction;
 
 let cycle1: ConditionalAppCommand = ["reopen", "reopen", "hide"];
 let cycle2: ConditionalAppCommand = ["noop", "reopen", "hide"];
+let cycle3: ConditionalAppCommand = ["reopen", "reopen", "reopen"];
+let cycle4: ConditionalAppCommand = ["noop", "reopen", "reopen"];
+cycle1 = cycle3;
+cycle2 = cycle4;
 
 function app(command: ConditionalAppCommand, id: string): Action {
   return { type: "app", command, app: ["id", id] };
@@ -54,27 +58,32 @@ const SHORTCUTS: { [key: string]: Action | undefined } = {
   "$^@S": app(["noop", "quit", "quit"], "com.apple.finder"),
   "^@b": app(cycle1, "com.apple.ActivityMonitor"),
   "^~b": app(cycle1, "com.apple.Terminal"),
-  "~/": app("reopen", "com.apple.ScreenSaver.Engine"),
+  "~/": app(cycle3, "com.apple.ScreenSaver.Engine"),
 
   // Utility
   // "^@.": app(cycle1, "de.codenuts.HotKey"),
   "^@0": app(cycle1, "tandem.app"),
+  "$^@P": app(["launch", "quit", "quit"], "com.pigigaldi.pock"),
 
   // Development
-  "^@E": app(cycle2, "com.microsoft.VSCode"),
-  "$^@E": app(cycle2, "arduino.ProIDE"),
+  "^@E": app(cycle1, "com.microsoft.VSCode"),
+  "$^@E": app(cycle4, "arduino.ProIDE"),
+  "^@G": app(cycle2, "co.gitup.mac"),
 
   // Life
   "$^@T": app(cycle1, "com.spotify.client"),
   "^@C": app(cycle1, "com.apple.iCal"),
   "^@Y": app(cycle1, "com.automattic.SimplenoteMac"),
+  "^~@Y": app(cycle1, "com.apple.Stickies"),
+  "^@T": app(cycle1, "com.google.Chrome.app.paccjkgbiiccgmgdhgdimdnohecgcgka"),
 
   // Web
-  "$^@M": app(cycle1, "com.facebook.archon"),
+  "$^@M": app(cycle2, "com.facebook.archon"),
   "^@A": app(cycle1, "com.google.Chrome.app.dpbfphgmphbjphnhpceopljnkmkbpfhi"),
   "^@K": app(cycle1, "com.google.Chrome.app.magkoliahgffibhgfkmoealggombgknl"),
-  "^@W": app(cycle1, "com.google.Chrome"),
-  "^@Z": app(cycle2, "us.zoom.xos"),
+  "^@U": app(cycle1, "com.google.Chrome.app.edcmabgkbicempmpgmniellhbjopafjh"),
+  "^@W": app(cycle3, "com.google.Chrome"),
+  "^@Z": app(cycle1, "us.zoom.xos"),
 
   // Spotify
   "n.": app(["launch", "hide", "hide"], "com.spotify.client"),
@@ -92,6 +101,17 @@ const SHORTCUTS: { [key: string]: Action | undefined } = {
     command:
       `tell application "Spotify" to set sound volume to (sound volume) * 0.8333`,
   },
+  "^@=": {
+    type: "as",
+    command:
+      `tell application "Spotify" to set sound volume to (sound volume + 1) * 1.2 + 1`,
+  },
+  "^@-": {
+    type: "as",
+    command:
+      `tell application "Spotify" to set sound volume to (sound volume) * 0.8333`,
+  },
+  "^@ ": { type: "spotify", command: ["playPause"] },
   //
   "ne": app(["reopen", "reopen", "hide"], "com.spotify.client"),
   //
@@ -110,6 +130,20 @@ const SHORTCUTS: { [key: string]: Action | undefined } = {
   "n6": undefined,
   // 1 Hour
   "n7": {
+    type: "js",
+    command: () => {
+      spotifyPlayTrack("spotify:playlist:3wOYpqLSqMHweMcinQuzQQ", false);
+      osascript(`
+        tell application "Menubar Countdown"
+          set hours to 0
+          set minutes to 56
+          set seconds to 0
+          start timer
+        end tell
+      `);
+    },
+  },
+  "f7": {
     type: "js",
     command: () => {
       spotifyPlayTrack("spotify:playlist:3wOYpqLSqMHweMcinQuzQQ", false);
