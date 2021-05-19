@@ -1,3 +1,5 @@
+// deno-lint-ignore-file prefer-const no-unused-vars
+
 import { readLines } from "https://deno.land/std@0.77.0/io/bufio.ts";
 
 type SingleAppCommand = "noop" | "reopen" | "launch" | "hide" | "show" | "quit";
@@ -44,7 +46,7 @@ function app(command: ConditionalAppCommand, id: string): Action {
   return { type: "app", command, app: ["id", id] };
 }
 
-function play(spotifyUri: string, shuffle: boolean = true): SpotifyAction {
+function play(spotifyUri: string, shuffle = true): SpotifyAction {
   return {
     type: "spotify",
     command: ["playTrack", spotifyUri, shuffle],
@@ -252,7 +254,7 @@ async function spotifyPlayPause() {
   );
 }
 
-async function spotifyPlayTrack(track: string, shuffle: boolean) {
+function spotifyPlayTrack(track: string, shuffle: boolean) {
   osascript(`
     tell application "Spotify"
       pause
@@ -263,7 +265,7 @@ async function spotifyPlayTrack(track: string, shuffle: boolean) {
   `);
 }
 
-async function manipulateApp(id: string, x: string, y: string, z: string) {
+function manipulateApp(id: string, x: string, y: string, z: string) {
   const encoder = new TextEncoder();
   appsProcess.stdin.write(encoder.encode(id + "\n"));
   appsProcess.stdin.write(encoder.encode(x + "\n"));
