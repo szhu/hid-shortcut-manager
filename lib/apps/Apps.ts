@@ -6,7 +6,7 @@ export type AppCommand =
   | "show"
   | "quit";
 
-export default class AppManipulator {
+export default class Apps {
   swiftProcess: Deno.Process<{ cmd: string[]; stdin: "piped" }>;
 
   constructor() {
@@ -17,14 +17,14 @@ export default class AppManipulator {
   }
 
   manipulateApp(
-    id: string,
+    ids: string[],
     notRunningCommand: AppCommand,
     hiddenCommand: AppCommand = notRunningCommand,
     visibleCommand: AppCommand = hiddenCommand,
   ) {
     const encoder = new TextEncoder();
     const request = {
-      id,
+      ids,
       notRunningCommand,
       hiddenCommand,
       visibleCommand,

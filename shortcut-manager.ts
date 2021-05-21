@@ -36,11 +36,11 @@ function Volume(level: number | string) {
   return fn;
 }
 
-function App(command: [AppCommand, AppCommand, AppCommand], id: string) {
+function App(command: [AppCommand, AppCommand, AppCommand], ...ids: string[]) {
   function fn() {
-    apps.manipulateApp(id, ...command);
+    apps.manipulateApp(ids, ...command);
   }
-  fn.description = `App: ${id}`;
+  fn.description = `App: ${ids}`;
   return fn;
 }
 
@@ -80,7 +80,11 @@ const Shortcuts: { [key: string]: Action | undefined } = {
   "^@T": App(rrh, "com.google.Chrome.App.paccjkgbiiccgmgdhgdimdnohecgcgka"),
 
   // Web
-  "$^@M": App(nrh, "com.facebook.archon"),
+  "$^@M": App(
+    rrh,
+    "com.google.Chrome.app.fmpeogjilmkgcolmjmaebdaebincaebh",
+    "com.facebook.archon",
+  ),
   "^@A": App(rrh, "com.google.Chrome.App.dpbfphgmphbjphnhpceopljnkmkbpfhi"),
   "^@K": App(rrh, "com.google.Chrome.App.magkoliahgffibhgfkmoealggombgknl"),
   "^@U": App(rrh, "com.google.Chrome.App.edcmabgkbicempmpgmniellhbjopafjh"),

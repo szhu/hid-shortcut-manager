@@ -1,8 +1,7 @@
 import AppKit
 
 struct AppAction: Codable {
-  var id: String
-  // var command: String
+  var ids: [String]
   var notRunningCommand: String
   var hiddenCommand: String
   var visibleCommand: String
@@ -35,8 +34,23 @@ while true {
   guard let action = readAppAction()
   else { continue }
 
-  let apps = NSRunningApplication
-    .runningApplications(withBundleIdentifier: action.id)
+  if action.ids.count == 0 { continue }
+
+  var id: String = ""
+  var apps: [NSRunningApplication] = []
+  for testId in action.ids {
+    apps =
+      NSRunningApplication.runningApplications(withBundleIdentifier: testId)
+
+    if apps.count > 0 {
+      id = testId
+      break
+    }
+  }
+  if id == "" {
+    id = action.ids[0]
+  }
+
   var command: String
   if apps.count == 0 {
     command = action.notRunningCommand
@@ -46,12 +60,12 @@ while true {
     command = action.hiddenCommand
   }
 
-  print("[Apps.swift]  id: \(action.id)  command: \(command)")
+  print("[Apps.swift]  id: \(id)  command: \(command)")
 
   switch command {
   case "launch":
     guard let url =
-      NSWorkspace.shared.urlForApplication(withBundleIdentifier: action.id)
+      NSWorkspace.shared.urlForApplication(withBundleIdentifier: id)
     else { break }
 
     let configuration = NSWorkspace.OpenConfiguration()
@@ -66,7 +80,7 @@ while true {
   case "reopen":
     let task = Process()
     task.launchPath = "/usr/bin/env"
-    task.arguments = ["-i", "/usr/bin/open", "-b", action.id]
+    task.arguments = ["-i", "/usr/bin/open", "-b", id]
     task.launch()
     task.waitUntilExit()
 
