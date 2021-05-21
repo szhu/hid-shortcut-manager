@@ -5,6 +5,7 @@ import replaceAscii from "./lib/keys/replaceAscii.ts";
 import osascript from "./lib/osascript/osascript.ts";
 import Spotify from "./lib/spotify/Spotify.ts";
 import open from "./lib/docs/open.ts";
+import exitIfParentExited from "./lib/process/exitIfParentExited.ts";
 
 type Action = (() => void) & ({ description?: string });
 
@@ -163,7 +164,9 @@ for (let oldKey in Shortcuts) {
 
 let apps = new Apps();
 
-let keyListener = new GlobalKeyListener(Object.keys(Shortcuts), (key) => {
+let keyListener = new GlobalKeyListener(Object.keys(Shortcuts), async (key) => {
+  await exitIfParentExited();
+
   let action = Shortcuts[key];
   console.log(key, Boolean(action), action?.description);
 

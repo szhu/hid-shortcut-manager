@@ -49,14 +49,15 @@ if !accessEnabled {
   exit(0)
 }
 
-let task = Process()
-task.executableURL = URL(fileURLWithPath: "/bin/bash")
-task.arguments = ["-c", "killall deno; cd /Users/Sean/Code/szhu/hid-shortcut-manager; /usr/local/bin/deno run --allow-run shortcut-manager.ts"]
-try task.run()
+let process = Process()
+process.currentDirectoryURL = URL(fileURLWithPath: "/Users/Sean/Code/szhu/hid-shortcut-manager")
+process.executableURL = URL(fileURLWithPath: "/usr/local/bin/deno")
+process.arguments = ["run", "--unstable", "--allow-run", "shortcut-manager.ts"]
+try process.run()
 
 // task.waitUntilExit()
 
 // applicationShouldTerminate()
 // exit(0)
 
-// NSApplication.shared.run()
+NSApplication.shared.run()
