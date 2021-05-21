@@ -1,34 +1,57 @@
 import AppKit
 
-func readLineWithPrompt(_: String) -> String {
-  // print(prompt, terminator: " ")
-  guard let answer = readLine(strippingNewline: true) else { exit(0) }
-  return answer
+struct AppAction: Codable {
+  var id: String
+  // var command: String
+  var notRunningCommand: String
+  var hiddenCommand: String
+  var visibleCommand: String
+}
+
+func readAppAction() -> AppAction? {
+  guard let input = readLine(strippingNewline: true)
+  else {
+    print("[Apps.swift] Error: End of input. Exiting.")
+    exit(0)
+  }
+
+  guard let data = input.data(using: .utf8)
+  else {
+    print("[Apps.swift] Error: Encoding error.")
+    return nil
+  }
+
+  let decoder = JSONDecoder()
+  guard let parsed = try? decoder.decode(AppAction.self, from: data)
+  else {
+    print("[Apps.swift] Error: JSON invalid or not in correct format.")
+    return nil
+  }
+
+  return parsed
 }
 
 while true {
-  let id = readLineWithPrompt("id:")
-  let notRunningAction = readLineWithPrompt("notRunningAction:")
-  let hiddenAction = readLineWithPrompt("hiddenAction:")
-  let visibleAction = readLineWithPrompt("visibleAction:")
+  guard let action = readAppAction()
+  else { continue }
 
   let apps = NSRunningApplication
-    .runningApplications(withBundleIdentifier: id)
-  var action: String
+    .runningApplications(withBundleIdentifier: action.id)
+  var command: String
   if apps.count == 0 {
-    action = notRunningAction
+    command = action.notRunningCommand
   } else if apps[0].isActive {
-    action = visibleAction
+    command = action.visibleCommand
   } else {
-    action = hiddenAction
+    command = action.hiddenCommand
   }
 
-  print("id: \(id)  action: \(action)")
+  print("[Apps.swift]  id: \(action.id)  command: \(command)")
 
-  switch action {
+  switch command {
   case "launch":
     guard let url =
-      NSWorkspace.shared.urlForApplication(withBundleIdentifier: id)
+      NSWorkspace.shared.urlForApplication(withBundleIdentifier: action.id)
     else { break }
 
     let configuration = NSWorkspace.OpenConfiguration()
@@ -43,7 +66,7 @@ while true {
   case "reopen":
     let task = Process()
     task.launchPath = "/usr/bin/env"
-    task.arguments = ["-i", "/usr/bin/open", "-b", id]
+    task.arguments = ["-i", "/usr/bin/open", "-b", action.id]
     task.launch()
     task.waitUntilExit()
 

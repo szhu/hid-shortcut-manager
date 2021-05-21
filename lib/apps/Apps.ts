@@ -18,14 +18,19 @@ export default class AppManipulator {
 
   manipulateApp(
     id: string,
-    commandIfNotRunning: AppCommand,
-    commandIfHidden: AppCommand = commandIfNotRunning,
-    commandIfVisible: AppCommand = commandIfHidden,
+    notRunningCommand: AppCommand,
+    hiddenCommand: AppCommand = notRunningCommand,
+    visibleCommand: AppCommand = hiddenCommand,
   ) {
     const encoder = new TextEncoder();
-    this.swiftProcess.stdin.write(encoder.encode(id + "\n"));
-    this.swiftProcess.stdin.write(encoder.encode(commandIfNotRunning + "\n"));
-    this.swiftProcess.stdin.write(encoder.encode(commandIfHidden + "\n"));
-    this.swiftProcess.stdin.write(encoder.encode(commandIfVisible + "\n"));
+    const request = {
+      id,
+      notRunningCommand,
+      hiddenCommand,
+      visibleCommand,
+    };
+    this.swiftProcess.stdin.write(
+      encoder.encode(JSON.stringify(request) + "\n"),
+    );
   }
 }
