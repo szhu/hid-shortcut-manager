@@ -48,6 +48,8 @@ enum EventReprLib {
   }
 }
 
+var isKeyDown = false
+
 func KeyListener_onKeyEvent(
   proxy _: CGEventTapProxy,
   type: CGEventType,
@@ -58,6 +60,19 @@ func KeyListener_onKeyEvent(
     let eventString = EventReprLib.reprEvent(type: type, event: event)
 
     let isMatching = patterns.contains(eventString)
+
+    // Naive way to ignore key repeats:
+    if isMatching {
+      if type == .keyUp {
+        isKeyDown = false
+      }
+      if isKeyDown {
+        return nil
+      }
+      if type == .keyDown {
+        isKeyDown = true
+      }
+    }
 
     if debugMode || isMatching && type == .keyDown {
       print(eventString)
