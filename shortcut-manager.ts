@@ -7,7 +7,7 @@ import Spotify from "./lib/spotify/Spotify.ts";
 import open from "./lib/docs/open.ts";
 import exitIfParentExited from "./lib/process/exitIfParentExited.ts";
 
-type Action = (() => void) & ({ description?: string });
+type Action = (() => void) & { description?: string };
 
 let rrh: [AppCommand, AppCommand, AppCommand] = ["reopen", "reopen", "hide"];
 let nrh: [AppCommand, AppCommand, AppCommand] = ["noop", "reopen", "hide"];
@@ -16,11 +16,7 @@ let nrr: [AppCommand, AppCommand, AppCommand] = ["noop", "reopen", "reopen"];
 // rrh = rrr;
 // nrh = nrr;
 
-function Play(
-  spotifyUri: string,
-  description: string | undefined = undefined,
-  shuffle = true,
-) {
+function Play(spotifyUri: string, description: string | undefined = undefined, shuffle = true) {
   function fn() {
     Spotify.playTrack(spotifyUri, shuffle);
   }
@@ -52,6 +48,17 @@ function Vscode(path: string) {
   return fn;
 }
 
+async function countdown(h: number, m: number, s: number) {
+  await osascript(`
+      tell application id "net.kristopherjohnson.MenubarCountdown"
+        set hours to ${h}
+        set minutes to ${m}
+        set seconds to ${s}
+        start timer
+      end tell
+    `);
+}
+
 const Shortcuts: { [key: string]: Action | undefined } = {
   // System
   "^@,": App(rrh, "com.apple.systempreferences"),
@@ -68,8 +75,7 @@ const Shortcuts: { [key: string]: Action | undefined } = {
   "$^@P": App(["launch", "quit", "quit"], "com.pigigaldi.pock"),
 
   // Development
-  "^@E": App(rrh, "com.microsoft.VSCode"),
-  "$^@E": App(nrr, "arduino.ProIDE"),
+  "^@E": App(rrr, "com.microsoft.VSCode", "arduino.ProIDE"),
   "^@G": App(nrh, "co.gitup.mac"),
 
   // Life/Office
@@ -77,17 +83,13 @@ const Shortcuts: { [key: string]: Action | undefined } = {
   "^@C": App(rrh, "com.apple.iCal"),
   "^@Y": App(rrh, "com.automattic.SimplenoteMac"),
   "^~@Y": App(rrh, "com.apple.Stickies"),
-  "^@T": App(rrh, "com.google.Chrome.App.paccjkgbiiccgmgdhgdimdnohecgcgka"),
+  "^@T": App(rrh, "com.google.Chrome.app.paccjkgbiiccgmgdhgdimdnohecgcgka"),
 
   // Web
-  "$^@M": App(
-    rrh,
-    "com.google.Chrome.app.fmpeogjilmkgcolmjmaebdaebincaebh",
-    "com.facebook.archon",
-  ),
-  "^@A": App(rrh, "com.google.Chrome.App.dpbfphgmphbjphnhpceopljnkmkbpfhi"),
-  "^@K": App(rrh, "com.google.Chrome.App.magkoliahgffibhgfkmoealggombgknl"),
-  "^@U": App(rrh, "com.google.Chrome.App.edcmabgkbicempmpgmniellhbjopafjh"),
+  "$^@M": App(rrh, "com.google.Chrome.app.fmpeogjilmkgcolmjmaebdaebincaebh", "com.facebook.archon"),
+  "^@A": App(rrh, "com.google.Chrome.app.dpbfphgmphbjphnhpceopljnkmkbpfhi"),
+  "^@K": App(rrh, "com.google.Chrome.app.pliiebkcmokkgndfalahlmimanmbjlab", "com.hnc.Discord"),
+  "^@U": App(rrh, "com.google.Chrome.app.edcmabgkbicempmpgmniellhbjopafjh"),
   "^@W": App(rrr, "com.google.Chrome"),
   "^@Z": App(rrh, "us.zoom.xos"),
 
@@ -100,39 +102,25 @@ const Shortcuts: { [key: string]: Action | undefined } = {
   "^@-": Volume("x * 0.8333"),
   "^@ ": () => Spotify.playPause(),
   //
-  "ne": App(["reopen", "reopen", "hide"], "com.spotify.client"),
+  ne: App(["reopen", "reopen", "hide"], "com.spotify.client"),
   //
-  "n0": () => Spotify.playPause(),
-  "n1": Play("spotify:station:playlist:2s9R059mmdc8kz6lrUqZZd", "Coffee Shop"),
-  "n2": Play("spotify:station:playlist:37i9dQZF1DX4WYpdgoIcn6", "Chill Hits"),
-  "n3": Play("spotify:station:playlist:37i9dQZF1DXdgz8ZB7c2CP", "Creamy"),
-  "n4": Play("spotify:station:track:5TTXEcfsYLh6fTarLaevTi", "NIKI - lowkey"),
-  "n5": Play("spotify:station:artist:2cGJym7cmkjHnXbQuZosPk", "XCRPT"),
-  "n6": undefined,
-  "n7"() {
-    Spotify.playTrack("spotify:playlist:3wOYpqLSqMHweMcinQuzQQ", false);
-    osascript(`
-      tell application "Menubar Countdown"
-        set hours to 0
-        set minutes to 56
-        set seconds to 0
-        start timer
-      end tell
-    `);
+  n0: () => Spotify.playPause(),
+  n1: Play("spotify:station:playlist:2s9R059mmdc8kz6lrUqZZd", "Coffee Shop"),
+  n2: Play("spotify:station:playlist:37i9dQZF1DX4WYpdgoIcn6", "Chill Hits"),
+  n3: Play("spotify:station:playlist:37i9dQZF1DXdgz8ZB7c2CP", "Creamy"),
+  n4: Play("spotify:station:track:5TTXEcfsYLh6fTarLaevTi", "NIKI - lowkey"),
+  n5: Play("spotify:station:artist:2cGJym7cmkjHnXbQuZosPk", "XCRPT"),
+  n6: undefined,
+  n7() {
+    Play("spotify:playlist:3wOYpqLSqMHweMcinQuzQQ", "1 Hour", false)();
+    countdown(0, 56, 0);
   },
-  "f7"() {
-    Spotify.playTrack("spotify:playlist:3wOYpqLSqMHweMcinQuzQQ", false);
-    osascript(`
-        tell application "Menubar Countdown"
-          set hours to 0
-          set minutes to 56
-          set seconds to 0
-          start timer
-        end tell
-      `);
+  f7() {
+    Play("spotify:playlist:3wOYpqLSqMHweMcinQuzQQ", "1 Hour", false)();
+    countdown(0, 56, 0);
   },
-  "n8": Play("spotify:show:4BIebsx0fW1Z6aptl05HBj", "BBC Minute"),
-  "n9": Play("spotify:playlist:37i9dQZF1EfQP9X79Savvn", "Daily Drive"),
+  n8: Play("spotify:show:4BIebsx0fW1Z6aptl05HBj", "BBC Minute"),
+  n9: Play("spotify:playlist:37i9dQZF1EfQP9X79Savvn", "Daily Drive"),
   //
   // "~n0": { type: "App", command: "hide", App: ["dockIndex", 0] },
   // "n0": { type: "App", command: cycle, App: ["dockIndex", 0] },
