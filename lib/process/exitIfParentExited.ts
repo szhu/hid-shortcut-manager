@@ -1,4 +1,4 @@
-async function isPidAlive(pid: string) {
+async function isPidAlive(pid: number) {
   const process = Deno.run({
     cmd: ["kill", "-0", `${pid}`],
     stdin: "null",
@@ -10,9 +10,7 @@ async function isPidAlive(pid: string) {
 }
 
 export default async function exitIfParentExited() {
-  // deno-lint-ignore no-explicit-any
-  const { ppid } = (Deno as any);
-  if (!await isPidAlive(ppid)) {
-    Deno.exit(0);
+  if (!(await isPidAlive(Deno.ppid))) {
+    Deno.kill(-Deno.pid, "SIGTERM");
   }
 }

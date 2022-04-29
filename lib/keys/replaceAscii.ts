@@ -25,5 +25,6 @@ export default function replaceAscii(key: string) {
   key = key.replace("f17", "f\uF714"); // function key
   key = key.replace("f18", "f\uF715"); // function key
   key = key.replace("f19", "f\uF716"); // function key
+  key = key.replace("f20", "\u0010"); // function key
   return key;
 }

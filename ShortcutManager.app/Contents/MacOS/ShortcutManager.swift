@@ -2,15 +2,6 @@
 
 import AppKit
 
-func applicationShouldTerminate() {
-  let task = Process()
-  task.executableURL = URL(fileURLWithPath: "/bin/bash")
-  task.arguments = ["-c", "touch /Users/Sean/test"]
-  do {
-    try task.run()
-  } catch {}
-}
-
 func getAppName() -> String {
   guard let appName = Bundle
     .main
@@ -54,6 +45,37 @@ process.currentDirectoryURL = URL(fileURLWithPath: "/Users/Sean/Code/szhu/hid-sh
 process.executableURL = URL(fileURLWithPath: "/usr/local/bin/deno")
 process.arguments = ["run", "--unstable", "--allow-run", "shortcut-manager.ts"]
 try process.run()
+
+// func applicationShouldTerminate() {
+//   let task = Process()
+//   task.executableURL = URL(fileURLWithPath: "/bin/bash")
+//   task.arguments = ["-c", "touch /Users/Sean/test"]
+//   do {
+//     try task.run()
+//   } catch {}
+// }
+
+class Delegate {
+  @objc func applicationWillTerminate(_ notification: NSNotification) {
+    print(notification)
+
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/local/bin/terminal-notifier")
+    process.arguments = ["-message", "quit!"]
+    try? process.run()
+  }
+
+  func listen() {
+    NotificationCenter.default.addObserver(
+      NSApplication.shared,
+      selector: #selector(Delegate.applicationWillTerminate(_:)),
+      name: NSApplication.willTerminateNotification,
+      object: nil
+    )
+  }
+}
+
+Delegate().listen()
 
 // task.waitUntilExit()
 

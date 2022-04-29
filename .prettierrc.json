@@ -7,7 +7,6 @@
     {
       "files": "shortcut-manager.ts",
       "options": {
-        "printWidth": 200
       }
     }
   ]

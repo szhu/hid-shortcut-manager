@@ -1,24 +1,21 @@
-// deno-lint-ignore-file prefer-const
-import Apps, { AppCommand } from "./lib/apps/Apps.ts";
+import AppControl, { AppCommand } from "./lib/apps/Apps.ts";
 import GlobalKeyListener from "./lib/keys/GlobalKeyListener.ts";
 import replaceAscii from "./lib/keys/replaceAscii.ts";
 import osascript from "./lib/osascript/osascript.ts";
-import Spotify from "./lib/spotify/Spotify.ts";
+import SpotifyControl from "./lib/spotify/Spotify.ts";
 import open from "./lib/docs/open.ts";
+import shell from "./lib/shell/shell.ts";
 import exitIfParentExited from "./lib/process/exitIfParentExited.ts";
 
 type Action = (() => void) & { description?: string };
 
-let rrh: [AppCommand, AppCommand, AppCommand] = ["reopen", "reopen", "hide"];
-let nrh: [AppCommand, AppCommand, AppCommand] = ["noop", "reopen", "hide"];
-let rrr: [AppCommand, AppCommand, AppCommand] = ["reopen", "reopen", "reopen"];
-let nrr: [AppCommand, AppCommand, AppCommand] = ["noop", "reopen", "reopen"];
-// rrh = rrr;
-// nrh = nrr;
-
-function Play(spotifyUri: string, description: string | undefined = undefined, shuffle = true) {
+function Play(
+  spotifyUri: string,
+  description: string | undefined = undefined,
+  shuffle = true,
+) {
   function fn() {
-    Spotify.playTrack(spotifyUri, shuffle);
+    SpotifyControl.playTrack(spotifyUri, shuffle);
   }
   fn.description = description ?? `Spotify: ${spotifyUri}`;
   return fn;
@@ -26,31 +23,57 @@ function Play(spotifyUri: string, description: string | undefined = undefined, s
 
 function Volume(level: number | string) {
   function fn() {
-    Spotify.setVolume(level);
+    SpotifyControl.setVolume(level);
   }
   fn.description = `Spotify Volume: ${level}`;
   return fn;
 }
 
-function App(command: [AppCommand, AppCommand, AppCommand], ...ids: string[]) {
+const AppShorthandToCommand = {
+  h: "hide" as AppCommand,
+  l: "launch" as AppCommand,
+  n: "noop" as AppCommand,
+  q: "quit" as AppCommand,
+  r: "reopen" as AppCommand,
+  s: "show" as AppCommand,
+};
+type AppCommandShorthand = keyof typeof AppShorthandToCommand;
+type AppCommandsShorthand =
+  `${AppCommandShorthand}${AppCommandShorthand}${AppCommandShorthand}`;
+
+function App(shorthand: AppCommandsShorthand, ...ids: string[]): Action {
+  let shorthandLetters = [...shorthand] as [AppCommandShorthand];
+  let commands = shorthandLetters.map((c) => AppShorthandToCommand[c]) as [
+    AppCommand,
+    AppCommand,
+    AppCommand,
+  ];
   function fn() {
-    apps.manipulateApp(ids, ...command);
+    apps.manipulateApp(ids, ...commands);
   }
-  fn.description = `App: ${ids}`;
+  fn.description = `App: ${ids[0]} (and ${ids.length - 1} alternatives)`;
   return fn;
 }
 
-function Vscode(path: string) {
+function Open(...args: string[]): Action {
   async function fn() {
-    await open("-b", "com.microsoft.VSCode", path);
+    await open(...args);
   }
-  fn.description = `Open with VSCode: ${path}`;
+  fn.description = `Open: ${args.join(" ")}`;
+  return fn;
+}
+
+function Shell(...args: string[]): Action {
+  async function fn() {
+    await shell(...args);
+  }
+  fn.description = `Shell: ${args.join(" ")}`;
   return fn;
 }
 
 async function countdown(h: number, m: number, s: number) {
   await osascript(`
-      tell application id "net.kristopherjohnson.MenubarCountdown"
+      tell application id "${MenubarCountdown}"
         set hours to ${h}
         set minutes to ${m}
         set seconds to ${s}
@@ -59,52 +82,133 @@ async function countdown(h: number, m: number, s: number) {
     `);
 }
 
+function ChromeJs(js: string) {
+  return () => {
+    osascript(`tell application "Google Chrome"
+      set |tab| to front window's active tab
+      execute |tab| javascript "${js.replace(/"/g, '\\"')}"
+    end tell`);
+  };
+}
+
+const ActivityMonitor = "com.apple.ActivityMonitor";
+const AirtableCr = "com.google.Chrome.app.ljknakahiebfmdmakamebpbhbikdkjfm";
+const ArduinoIDE = "arduino.ProIDE";
+const AsanaCr = "com.google.Chrome.app.dpbfphgmphbjphnhpceopljnkmkbpfhi";
+const Calendar = "com.apple.iCal";
+const Chrome = "com.google.Chrome";
+const ClickUp = "com.google.Chrome.app.edcmabgkbicempmpgmniellhbjopafjh";
+const ClockBar = "cn.licardo.ClockBar";
+const Discord = "com.hnc.Discord";
+const DiscordCr = "com.google.Chrome.app.pliiebkcmokkgndfalahlmimanmbjlab";
+const FigmaCr = "com.google.Chrome.app.anhmnecnhcoggkaemikcpdnmleknnmpc";
+const Finder = "com.apple.finder";
+const GitUp = "co.gitup.mac";
+const GlitchCr = "com.google.Chrome.app.bpkjipklloacmopdonccbdaiabfdgmgf";
+const GmailCr = "com.google.Chrome.app.kmhopmchchfpfdcdjodmpfaaphdclmlj";
+const HotKey = "de.codenuts.HotKey";
+const Instagram = "com.google.Chrome.app.maonlnecdeecdljpahhnnlmhbmalehlm";
+const MenubarCountdown = "net.kristopherjohnson.MenubarCountdown";
+const Messages = "com.apple.MobileSMS";
+const Messenger = "com.facebook.archon";
+const MessengerCr = "com.google.Chrome.app.fmpeogjilmkgcolmjmaebdaebincaebh";
+const Pock = "com.pigigaldi.pock";
+const ScreenSaver = "com.apple.ScreenSaver.Engine";
+const Simplenote = "com.automattic.SimplenoteMac";
+const SlabCr = "com.google.Chrome.app.paccjkgbiiccgmgdhgdimdnohecgcgka";
+const Slack = "com.tinyspeck.slackmacgap";
+const SlackCr = "com.google.Chrome.app.cbiamopdajbbpeleeemeomhjmfhpmnna";
+const SoundtrapCr = "com.google.Chrome.app.ifjccnkgpmdifkdpmkiebcbnakhblaoa";
+const Spotify = "com.spotify.client";
+const SpotifyCr = "com.google.Chrome.app.pjibgclleladliembfgfagdaldikeohf";
+const Stickies = "com.stickes.Stickies";
+const Sublime = "com.sublimetext.4";
+const SystemPreferences = "com.apple.systempreferences";
+const Tandem = "tandem.app";
+const Terminal = "com.apple.Terminal";
+const TypewriterCr = "com.google.Chrome.app.kggncmaejimakapagjggjhademakcnna";
+const VSCode = "com.microsoft.VSCode";
+const VSCodeCr = "com.google.Chrome.app.jhdpafkbedbgckdnecbbppbpboebapeb";
+const Zoom = "us.zoom.xos";
+
+const BluetoothPreferences =
+  "/System/Library/PreferencePanes/Bluetooth.prefPane";
+const Self = "/Users/Sean/Code/szhu/hid-shortcut-manager";
+
 const Shortcuts: { [key: string]: Action | undefined } = {
+  // YouTube Music
+  // $8: () => {
+  //   App(rrh, "com.spotify.client")();
+  //   App(rrh, "com.google.Chrome.app.cinhimbnkkaeohfgghhklpknlkffjgod")();
+  // },
+
+  // "^F": ChromeJs(`for (let name of document.querySelectorAll('.name-uJV0GL')) {
+  //     if (name.innerText.trim() === 'natayie') {
+  //         name.click();
+  //     }
+  // }`),
+
   // System
-  "^@,": App(rrh, "com.apple.systempreferences"),
-  "^@S": App(rrh, "com.apple.finder"),
-  "$^@S": App(["noop", "quit", "quit"], "com.apple.finder"),
-  "^@b": App(rrh, "com.apple.ActivityMonitor"),
-  "^~b": App(rrh, "com.apple.Terminal"),
-  "~/": App(rrr, "com.apple.ScreenSaver.Engine"),
+  "^@,": App("rrh", SystemPreferences),
+  "^@S": App("rrr", Finder),
+  "^~@W": App("rrr", Finder),
+  "$^@S": App("nqq", Finder),
+  "^@B": Open(BluetoothPreferences),
+  "^@b": App("rrh", ActivityMonitor),
+  "^~b": App("rrh", Terminal),
+  // "~/": App(rrr, ScreenSaver),
 
   // Utility
-  // "^@.": App(rrh, "de.codenuts.HotKey"),
-  "^@.": Vscode("/Users/Sean/Code/szhu/hid-shortcut-manager"),
-  "^@0": App(rrh, "tandem.App"),
-  "$^@P": App(["launch", "quit", "quit"], "com.pigigaldi.pock"),
+  // "^@.": App(rrh, HotKey),
+  "^@.": Open("-b", VSCode, Self),
+  // "^@.": async () => {
+  //   // App(rrr, Sublime)();
+  //   Open("-b", VSCode, Self)();
+  // },
+  "^@0": App("rrh", Tandem),
+  "$^@P": App("lqq", Pock),
 
   // Development
-  "^@E": App(rrr, "com.microsoft.VSCode", "arduino.ProIDE"),
-  "^@G": App(nrh, "co.gitup.mac"),
+  "^@E": App("nrr", Sublime, ArduinoIDE, GlitchCr, VSCodeCr, VSCode),
+  "$^@E": App("rrr", VSCode),
+  "^@G": App("nrh", GitUp),
+  "^@P": App("nrh", GitUp, FigmaCr),
+  // "^@R": App("rrr", SoundtrapCr),
 
   // Life/Office
-  "$^@T": App(rrh, "com.spotify.client"),
-  "^@C": App(rrh, "com.apple.iCal"),
-  "^@Y": App(rrh, "com.automattic.SimplenoteMac"),
-  "^~@Y": App(rrh, "com.apple.Stickies"),
-  "^@T": App(rrh, "com.google.Chrome.app.paccjkgbiiccgmgdhgdimdnohecgcgka"),
+  "$^@T": App("rrh", Spotify, SpotifyCr),
+  "^@C": App("rrh", Calendar),
+  "^@Y": App("rrh", Simplenote),
+  "^~@Y": App("rrh", Stickies),
+  "^@T": App("rrr", TypewriterCr),
+  "$^@0": App("lqq", ClockBar),
 
   // Web
-  "$^@M": App(rrh, "com.google.Chrome.app.fmpeogjilmkgcolmjmaebdaebincaebh", "com.facebook.archon"),
-  "^@A": App(rrh, "com.google.Chrome.app.dpbfphgmphbjphnhpceopljnkmkbpfhi"),
-  "^@K": App(rrh, "com.google.Chrome.app.pliiebkcmokkgndfalahlmimanmbjlab", "com.hnc.Discord"),
-  "^@U": App(rrh, "com.google.Chrome.app.edcmabgkbicempmpgmniellhbjopafjh"),
-  "^@W": App(rrr, "com.google.Chrome"),
-  "^@Z": App(rrh, "us.zoom.xos"),
+  "^~@N": App("rrh", GmailCr),
+  "^@M": App("rrh", Messages),
+  "$^@M": App("rrh", MessengerCr, Messenger),
+  "^@I": App("rrh", Instagram),
+  // "^@A": App('rrh', Asana), // Asana
+  "^@A": App("rrh", AirtableCr),
+  "^@R": App("rrh", DiscordCr, Discord),
+  "^@K": App("rrh", DiscordCr, Discord),
+  "^@L": App("rrh", Slack, SlackCr),
+  "^@U": App("rrh", ClickUp),
+  "^@W": App("rrr", Chrome),
+  "^@Z": App("rrh", Zoom),
 
   // Spotify
-  "n.": App(["launch", "hide", "hide"], "com.spotify.client"),
+  "n.": App("lhh", Spotify),
   "n*": Volume(0),
   "n+": Volume("(x + 1) * 1.2 + 1"),
   "n-": Volume("x * 0.8333"),
   "^@=": Volume("(x + 1) * 1.2 + 1"),
   "^@-": Volume("x * 0.8333"),
-  "^@ ": () => Spotify.playPause(),
+  "^@ ": () => SpotifyControl.playPause(),
   //
-  ne: App(["reopen", "reopen", "hide"], "com.spotify.client"),
+  ne: App("rrh", "com.spotify.client"),
   //
-  n0: () => Spotify.playPause(),
+  n0: () => SpotifyControl.playPause(),
   n1: Play("spotify:station:playlist:2s9R059mmdc8kz6lrUqZZd", "Coffee Shop"),
   n2: Play("spotify:station:playlist:37i9dQZF1DX4WYpdgoIcn6", "Chill Hits"),
   n3: Play("spotify:station:playlist:37i9dQZF1DXdgz8ZB7c2CP", "Creamy"),
@@ -154,17 +258,37 @@ for (let oldKey in Shortcuts) {
   }
 }
 
-let apps = new Apps();
+const apps = new AppControl();
 
-let keyListener = new GlobalKeyListener(Object.keys(Shortcuts), async (key) => {
-  await exitIfParentExited();
+const keyListener = new GlobalKeyListener(
+  Object.keys(Shortcuts),
+  async (key) => {
+    await exitIfParentExited();
 
-  let action = Shortcuts[key];
-  console.log(key, Boolean(action), action?.description);
+    let action = Shortcuts[key];
+    let actionString = action
+      ? action?.description ?? "(No description provided)"
+      : action;
 
-  if (!action) return;
+    console.log();
+    console.log("Received key:", key);
+    console.log("      Action:", actionString);
 
-  action();
-});
+    if (!action) return;
+
+    Deno.run({
+      cmd: ["afplay", "--volume", "0.1", "/System/Library/Sounds/Purr.aiff"],
+    }).status();
+    action();
+  },
+);
+
+// Deno.run({
+//   cmd: [
+//     "bash",
+//     "-c",
+//     `receivemidi dev 'Keystation 61 MK3 (Transport)' | deno run --allow-run lib/midi/transport.ts | xargs -L1 cliclick`,
+//   ],
+// });
 
 await keyListener.done;
