@@ -149,62 +149,61 @@ const Shortcuts: { [key: string]: Action | undefined } = {
   // }`),
 
   // System
-  "^@,": App("rrh", SystemPreferences),
-  "^@S": App("rrr", Finder),
-  "^~@W": App("rrr", Finder),
-  "$^@S": App("nqq", Finder),
-  "^@B": Open(BluetoothPreferences),
+  "^~,": App("rrh", SystemPreferences),
+  "^~S": App("rrr", Finder),
+  "$^~S": App("nqq", Finder),
+  "^~B": Open(BluetoothPreferences),
   "^@b": App("rrh", ActivityMonitor),
   "^~b": App("rrh", Terminal),
   // "~/": App(rrr, ScreenSaver),
 
   // Utility
-  // "^@.": App(rrh, HotKey),
-  "^@.": Open("-b", VSCode, Self),
-  // "^@.": async () => {
+  // "^~.": App(rrh, HotKey),
+  "^~.": Open("-b", VSCode, Self),
+  // "^~.": async () => {
   //   // App(rrr, Sublime)();
   //   Open("-b", VSCode, Self)();
   // },
-  "^@0": App("rrh", Tandem),
-  "$^@P": App("lqq", Pock),
+  "^~0": App("rrh", Tandem),
+  "$^~P": App("lqq", Pock),
 
   // Development
-  "^@E": App("nrr", Sublime, ArduinoIDE, GlitchCr, VSCodeCr, VSCode),
-  "$^@E": App("rrr", VSCode),
-  "^@G": App("nrh", GitUp),
-  "^@P": App("nrh", GitUp, FigmaCr),
-  // "^@R": App("rrr", SoundtrapCr),
+  "^~E": App("nrr", Sublime, ArduinoIDE, GlitchCr, VSCodeCr, VSCode),
+  "$^~E": App("rrr", VSCode),
+  "^~G": App("nrh", GitUp),
+  "^~P": App("nrh", GitUp, FigmaCr),
+  // "^~R": App("rrr", SoundtrapCr),
 
   // Life/Office
-  "$^@T": App("rrh", Spotify, SpotifyCr),
-  "^@C": App("rrh", Calendar),
-  "^@Y": App("rrh", Simplenote),
-  "^~@Y": App("rrh", Stickies),
-  "^@T": App("rrr", TypewriterCr),
-  "$^@0": App("lqq", ClockBar),
+  "$^~T": App("rrh", Spotify, SpotifyCr),
+  "^~C": App("rrh", Calendar),
+  "^~Y": App("rrh", Simplenote),
+  "$^~Y": App("rrh", Stickies),
+  "^~T": App("rrr", TypewriterCr),
+  "$^~0": App("lqq", ClockBar),
 
   // Web
-  "^~@N": App("rrh", GmailCr),
-  "^@M": App("rrh", Messages),
-  "$^@M": App("rrh", MessengerCr, Messenger),
-  "^@I": App("rrh", Instagram),
-  // "^@A": App('rrh', Asana), // Asana
-  "^@A": App("rrh", AirtableCr),
-  "^@R": App("rrh", DiscordCr, Discord),
-  "^@K": App("rrh", DiscordCr, Discord),
-  "^@L": App("rrh", Slack, SlackCr),
-  "^@U": App("rrh", ClickUp),
-  "^@W": App("rrr", Chrome),
-  "^@Z": App("rrh", Zoom),
+  "^~N": App("rrh", GmailCr),
+  "^~M": App("rrh", Messages),
+  "$^~M": App("rrh", MessengerCr, Messenger),
+  "^~I": App("rrh", Instagram),
+  // "^~A": App('rrh', Asana), // Asana
+  "^~A": App("rrh", AirtableCr),
+  "^~R": App("rrh", DiscordCr, Discord),
+  "^~K": App("rrh", DiscordCr, Discord),
+  "^~L": App("rrh", Slack, SlackCr),
+  "^~U": App("rrh", ClickUp),
+  "^~W": App("rrr", Chrome),
+  "^~Z": App("rrh", Zoom),
 
   // Spotify
   "n.": App("lhh", Spotify),
   "n*": Volume(0),
   "n+": Volume("(x + 1) * 1.2 + 1"),
   "n-": Volume("x * 0.8333"),
-  "^@=": Volume("(x + 1) * 1.2 + 1"),
-  "^@-": Volume("x * 0.8333"),
-  "^@ ": () => SpotifyControl.playPause(),
+  "^~=": Volume("(x + 1) * 1.2 + 1"),
+  "^~-": Volume("x * 0.8333"),
+  "^~ ": () => SpotifyControl.playPause(),
   //
   ne: App("rrh", "com.spotify.client"),
   //
