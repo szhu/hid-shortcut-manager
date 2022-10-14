@@ -5,7 +5,7 @@
 	<key>CFBundleName</key>
 	<string>ShortcutManager</string>
 	<key>CFBundleExecutable</key>
-	<string>ShortcutManager</string>
+	<string>ShortcutManager.swift</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.interestinglythere.shortcutmanager</string>
 	<key>CFBundleInfoDictionaryVersion</key>

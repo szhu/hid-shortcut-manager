@@ -1,3 +1,5 @@
+#!/usr/bin/env deno run --allow-run=swift,kill,afplay,osascript
+
 import AppControl, { AppCommand } from "./lib/apps/Apps.ts";
 import GlobalKeyListener from "./lib/keys/GlobalKeyListener.ts";
 import replaceAscii from "./lib/keys/replaceAscii.ts";
@@ -115,6 +117,7 @@ const MessengerCr = "com.google.Chrome.app.fmpeogjilmkgcolmjmaebdaebincaebh";
 const Pock = "com.pigigaldi.pock";
 const ScreenSaver = "com.apple.ScreenSaver.Engine";
 const Simplenote = "com.automattic.SimplenoteMac";
+const Safari = "com.apple.Safari";
 const SlabCr = "com.google.Chrome.app.paccjkgbiiccgmgdhgdimdnohecgcgka";
 const Slack = "com.tinyspeck.slackmacgap";
 const SlackCr = "com.google.Chrome.app.cbiamopdajbbpeleeemeomhjmfhpmnna";
@@ -185,15 +188,16 @@ const Shortcuts: { [key: string]: Action | undefined } = {
   // Web
   "^~N": App("rrh", GmailCr),
   "^~M": App("rrh", Messages),
-  "$^~M": App("rrh", MessengerCr, Messenger),
+  "$^~M": App("rrh", Messenger, MessengerCr),
   "^~I": App("rrh", Instagram),
   // "^~A": App('rrh', Asana), // Asana
   "^~A": App("rrh", AirtableCr),
+  "^~D": App("rrh", Discord),
   "^~R": App("rrh", DiscordCr, Discord),
   "^~K": App("rrh", DiscordCr, Discord),
   "^~L": App("rrh", Slack, SlackCr),
   "^~U": App("rrh", ClickUp),
-  "^~W": App("rrr", Chrome),
+  "^~W": App("rrr", Safari),
   "^~Z": App("rrh", Zoom),
 
   // Spotify
