@@ -40,8 +40,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     let process = Process()
     process.currentDirectoryPath = "/Users/Sean/Code/github.com/szhu/hid-shortcut-manager.code"
-    process.launchPath = "/opt/homebrew/bin/deno"
-    process.arguments = ["run", "--allow-run=swift,kill,afplay,osascript", "shortcut-manager.ts"]
+    process.launchPath = "/usr/bin/env"
+    process.arguments = ["./shortcut-manager.ts"]
     process.launch()
   }
 

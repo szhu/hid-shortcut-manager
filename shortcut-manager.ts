@@ -1,4 +1,4 @@
-#!/usr/bin/env deno run --allow-run=swift,kill,afplay,osascript
+#!/opt/homebrew/bin/deno run --allow-run=swift,kill,afplay,osascript,open
 
 import AppControl, { AppCommand } from "./lib/apps/Apps.ts";
 import GlobalKeyListener from "./lib/keys/GlobalKeyListener.ts";
