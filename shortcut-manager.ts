@@ -1,4 +1,4 @@
-#!/opt/homebrew/bin/deno run --allow-run=swift,kill,afplay,osascript,open
+#!/opt/homebrew/bin/deno run --no-prompt --allow-run=swift,kill,afplay,osascript,open
 
 import AppControl, { AppCommand } from "./lib/apps/Apps.ts";
 import GlobalKeyListener from "./lib/keys/GlobalKeyListener.ts";
@@ -279,10 +279,15 @@ const keyListener = new GlobalKeyListener(
 
     if (!action) return;
 
-    Deno.run({
-      cmd: ["afplay", "--volume", "0.1", "/System/Library/Sounds/Purr.aiff"],
-    }).status();
-    action();
+    try {
+      await action();
+      Deno.run({
+        cmd: ["afplay", "--volume", "0.05", "/System/Library/Sounds/Purr.aiff"],
+      });
+    } catch (e) {
+      osascript("beep 2");
+      console.error("Error while running action:", e);
+    }
   },
 );
 
