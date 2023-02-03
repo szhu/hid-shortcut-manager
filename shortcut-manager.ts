@@ -57,6 +57,38 @@ function App(shorthand: AppCommandsShorthand, ...ids: string[]): Action {
   return fn;
 }
 
+function ArcTab(tabName: string): Action {
+  const jsonTabName = JSON.stringify(tabName);
+  function fn() {
+    osascript(`
+    set done to false
+
+    tell application "Arc" to activate
+
+
+    tell application "System Events"
+      tell process "Arc"
+        get properties of every window
+        set |windows| to windows whose name is ${jsonTabName}
+        if length of |windows| ≥ 1 then
+          perform (action "AXRaise" of first item of |windows|)
+          set my done to true
+        end if
+      end tell
+    end tell
+
+    if not my done then
+      tell application "Arc"
+        select (first tab of (first window whose mode is "normal") whose location is "pinned" and title is ${jsonTabName})
+      end tell
+    end if
+
+    `);
+  }
+  fn.description = `Arc Tab: ${tabName}`;
+  return fn;
+}
+
 function Open(...args: string[]): Action {
   async function fn() {
     await open(...args);
@@ -96,6 +128,7 @@ function ChromeJs(js: string) {
 const ActivityMonitor = "com.apple.ActivityMonitor";
 const AirtableCr = "com.google.Chrome.app.ljknakahiebfmdmakamebpbhbikdkjfm";
 const ArduinoIDE = "arduino.ProIDE";
+const Arc = "company.thebrowser.Browser";
 const AsanaCr = "com.google.Chrome.app.dpbfphgmphbjphnhpceopljnkmkbpfhi";
 const Calendar = "com.apple.iCal";
 const Chrome = "com.google.Chrome";
@@ -103,8 +136,10 @@ const ClickUp = "com.google.Chrome.app.edcmabgkbicempmpgmniellhbjopafjh";
 const ClockBar = "cn.licardo.ClockBar";
 const Discord = "com.hnc.Discord";
 const DiscordCr = "com.google.Chrome.app.pliiebkcmokkgndfalahlmimanmbjlab";
+const Dock = "com.apple.dock";
 const FigmaCr = "com.google.Chrome.app.anhmnecnhcoggkaemikcpdnmleknnmpc";
 const Finder = "com.apple.finder";
+const Freeform = "com.apple.freeform";
 const GitUp = "co.gitup.mac";
 const GlitchCr = "com.google.Chrome.app.bpkjipklloacmopdonccbdaiabfdgmgf";
 const GmailCr = "com.google.Chrome.app.kmhopmchchfpfdcdjodmpfaaphdclmlj";
@@ -136,7 +171,7 @@ const Zoom = "us.zoom.xos";
 
 const BluetoothPreferences =
   "/System/Library/PreferencePanes/Bluetooth.prefPane";
-const Self = "/Users/Sean/Code/szhu/hid-shortcut-manager";
+const Self = "/Users/Sean/Code/github.com/szhu/hid-shortcut-manager.code";
 
 const Shortcuts: { [key: string]: Action | undefined } = {
   // YouTube Music
@@ -159,6 +194,7 @@ const Shortcuts: { [key: string]: Action | undefined } = {
   "^@b": App("rrh", ActivityMonitor),
   "^~b": App("rrh", Terminal),
   // "~/": App(rrr, ScreenSaver),
+  "$^~D": App("nqq", Dock),
 
   // Utility
   // "^~.": App(rrh, HotKey),
@@ -178,26 +214,34 @@ const Shortcuts: { [key: string]: Action | undefined } = {
   // "^~R": App("rrr", SoundtrapCr),
 
   // Life/Office
-  "$^~T": App("rrh", Spotify, SpotifyCr),
+  // "$^~T": App("rrh", Spotify, SpotifyCr),
+  "$^~T": ArcTab("Spotify"),
   "^~C": App("rrh", Calendar),
   "^~Y": App("rrh", Simplenote),
   "$^~Y": App("rrh", Stickies),
+  "^~F": App("rrh", Freeform),
   "^~T": App("rrr", TypewriterCr),
   "$^~0": App("lqq", ClockBar),
 
   // Web
-  "^~N": App("rrh", GmailCr),
+  // "^~N": App("rrh", GmailCr),
+  "^~N": ArcTab("Gmail"),
   "^~M": App("rrh", Messages),
-  "$^~M": App("rrh", Messenger, MessengerCr),
-  "^~I": App("rrh", Instagram),
+  // "$^~M": App("rrh", Messenger, MessengerCr),
+  "$^~M": ArcTab("Messenger"),
+  // "^~I": App("rrh", Instagram),
+  "^~I": ArcTab("Instagram"),
   // "^~A": App('rrh', Asana), // Asana
   "^~A": App("rrh", AirtableCr),
-  "^~D": App("rrh", Discord),
-  "^~R": App("rrh", DiscordCr, Discord),
-  "^~K": App("rrh", DiscordCr, Discord),
-  "^~L": App("rrh", Slack, SlackCr),
+  // "^~D": App("rrh", Discord),
+  // "^~R": App("rrh", DiscordCr, Discord),
+  // "^~K": App("rrh", DiscordCr, Discord),
+  "^~K": ArcTab("Discord"),
+  // "^~L": App("rrh", Slack, SlackCr),
+  "^~L": ArcTab("Springboard Slack"),
   "^~U": App("rrh", ClickUp),
-  "^~W": App("rrr", Safari),
+  "^~W": App("rrr", Arc),
+  "$^~W": App("rrr", Safari),
   "^~Z": App("rrh", Zoom),
 
   // Spotify
@@ -205,9 +249,9 @@ const Shortcuts: { [key: string]: Action | undefined } = {
   "n*": Volume(0),
   "n+": Volume("(x + 1) * 1.2 + 1"),
   "n-": Volume("x * 0.8333"),
-  "^~=": Volume("(x + 1) * 1.2 + 1"),
-  "^~-": Volume("x * 0.8333"),
-  "^~ ": () => SpotifyControl.playPause(),
+  "^~@=": Volume("(x + 1) * 1.2 + 1"),
+  "^~@-": Volume("x * 0.8333"),
+  "^~@ ": () => SpotifyControl.playPause(),
   //
   ne: App("rrh", "com.spotify.client"),
   //
